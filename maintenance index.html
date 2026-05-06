@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบแจ้งซ่อมและติดตามสถานะ</title>
+
+    <!-- ✅ EmailJS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #0078d4;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+        }
+        button {
+            background: #0078d4;
+            color: #fff;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>📝 แจ้งปัญหา / แจ้งซ่อม</h2>
+
+    <!-- ✅ สำคัญ: ฟอร์มต้องมี name="" -->
+    <form id="submitForm" onsubmit="sendData(event)">
+        <div class="form-group">
+            <label>ชื่อเรื่อง</label>
+            <input type="text" name="title" required>
+        </div>
+
+        <div class="form-group">
+            <label>สถานที่</label>
+            <select name="location" required>
+                <option value="">-- กรุณาเลือกสถานที่ --</option>
+                <option>อาคารผลิต 2</option>
+                <option>อาคารผลิตอบหยาบ</option>
+                <option>โกดัง 1 repack</option>
+                <option>สำนักงาน</option>
+                <option>อาคารห้องแล็บและสโตล์</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>รายละเอียด</label>
+            <textarea name="description" rows="4" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>อัปโหลดรูปภาพหน้างาน</label>
+            <!-- ✅ EmailJS ใช้ name นี้ในการแนบไฟล์ -->
+            <input type="file" name="attachment" accept="image/*" required>
+        </div>
+
+        <button type="submit">ส่งข้อมูลแจ้งซ่อม</button>
+    </form>
+</div>
+
+<script>
+/* ✅ INIT EmailJS */
+emailjs.init("YOUR_PUBLIC_KEY"); // 🔴 ใส่ Public Key
+
+function sendData(event) {
+    event.preventDefault();
+
+    emailjs.sendForm(
+        "YOUR_SERVICE_ID",     // 🔴 Service ID
+        "YOUR_TEMPLATE_ID",    // 🔴 Template ID
+        document.getElementById("submitForm")
+    ).then(
+        function () {
+            alert(
+                "✅ ส่งข้อมูลแจ้งซ่อมเรียบร้อยแล้ว\n\n" +
+                "อีเมล (พร้อมรูปแนบ) ส่งไปที่\n" +
+                "nattapong.k@thaiwah.com"
+            );
+            document.getElementById("submitForm").reset();
+        },
+        function (error) {
+            alert("❌ เกิดข้อผิดพลาดในการส่งอีเมล");
+            console.error("EmailJS error:", error);
+        }
+    );
+}
+</script>
+
+</body>
+</html>
