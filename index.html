@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบแจ้งซ่อมและติดตามสถานะ</title>
 
-    <!-- ✅ EmailJS Library -->
+    <!-- ✅ EmailJS -->
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
     <style>
@@ -88,8 +88,8 @@
         </div>
 
         <div class="form-group">
-            <label>อัปโหลดรูปภาพหน้างาน (ไม่เกิน 200KB)</label>
-            <input type="file" name="attachment" accept="image/*">
+            <label>อัปโหลดรูปภาพ (ระบบจะย่ออัตโนมัติ)</label>
+            <input type="file" id="imageInput" name="attachment" accept="image/*">
         </div>
 
         <button type="submit">ส่งข้อมูลแจ้งซ่อม</button>
@@ -97,46 +97,72 @@
 </div>
 
 <script>
-/* ✅ INIT EmailJS */
-emailjs.init("8UTkDv4pxgKkUI61t"); // Public Key
+emailjs.init("8UTkDv4pxgKkUI61t");
 
-function sendData(event) {
+/* ✅ ฟังก์ชันย่อรูป */
+function resizeImage(file, maxWidth = 1024, quality = 0.7) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                const scale = Math.min(maxWidth / img.width, 1);
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        const resizedFile = new File(
+                            [blob],
+                            file.name,
+                            { type: "image/jpeg" }
+                        );
+                        resolve(resizedFile);
+                    },
+                    "image/jpeg",
+                    quality
+                );
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function sendData(event) {
     event.preventDefault();
 
     const form = document.getElementById("submitForm");
-    const fileInput = form.querySelector('input[name="attachment"]');
-    const file = fileInput.files[0];
+    const fileInput = document.getElementById("imageInput");
 
-    /* ✅ ตรวจสอบขนาดไฟล์ */
-    if (file) {
-        const maxSize = 200 * 1024; // 200 KB
+    if (fileInput.files.length > 0) {
+        const originalFile = fileInput.files[0];
 
-        if (file.size > maxSize) {
-            alert(
-                "❌ รูปภาพมีขนาดใหญ่เกินไป\n\n" +
-                "กรุณาเลือกไฟล์ไม่เกิน 200KB"
-            );
-            fileInput.value = "";
-            return;
-        }
+        /* ✅ ย่อรูปอัตโนมัติ */
+        const resizedImage = await resizeImage(originalFile);
+
+        /* ✅ แทนที่ไฟล์เดิมใน input */
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(resizedImage);
+        fileInput.files = dataTransfer.files;
     }
 
-    /* ✅ ส่งข้อมูลด้วย EmailJS */
     emailjs.sendForm(
         "service_03aqzbe",
         "template_balmkii",
         form
     ).then(
-        function () {
-            alert(
-                "✅ ส่งข้อมูลแจ้งซ่อมเรียบร้อยแล้ว\n\n" +
-                "ระบบได้ส่งอีเมลไปเรียบร้อย"
-            );
+        () => {
+            alert("✅ ส่งข้อมูลแจ้งซ่อมเรียบร้อยแล้ว");
             form.reset();
         },
-        function (error) {
+        (error) => {
             alert("❌ เกิดข้อผิดพลาดในการส่งอีเมล");
-            console.error("EmailJS error:", error);
+            console.error(error);
         }
     );
 }
