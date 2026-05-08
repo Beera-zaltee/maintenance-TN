@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -21,7 +22,6 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
         }
         h2 {
             text-align: center;
@@ -56,7 +56,6 @@
 <div class="container">
     <h2>📝 แจ้งปัญหา / แจ้งซ่อม</h2>
 
-    <!-- ✅ สำคัญ: ฟอร์มต้องมี name="" -->
     <form id="submitForm" onsubmit="sendData(event)">
         <div class="form-group">
             <label>ชื่อเรื่อง</label>
@@ -70,8 +69,16 @@
                 <option>อาคารผลิต 2</option>
                 <option>อาคารผลิตอบหยาบ</option>
                 <option>โกดัง 1 repack</option>
+                <option>โกดัง 2</option>
+                <option>โกดัง 3</option>
                 <option>สำนักงาน</option>
                 <option>อาคารห้องแล็บและสโตล์</option>
+                <option>บ่อแก๊สไทยนำ</option>
+                <option>บ่อแก๊สไทยวา</option>
+                <option>บ่อน้ำดี</option>
+                <option>โรงสูบน้ำ</option>
+                <option>facility</option>
+
             </select>
         </div>
 
@@ -81,9 +88,8 @@
         </div>
 
         <div class="form-group">
-            <label>อัปโหลดรูปภาพหน้างาน</label>
-            <!-- ✅ EmailJS ใช้ name นี้ในการแนบไฟล์ -->
-            <input type="file" name="attachment" accept="image/*" >
+            <label>อัปโหลดรูปภาพหน้างาน (ไม่เกิน 200KB)</label>
+            <input type="file" name="attachment" accept="image/*">
         </div>
 
         <button type="submit">ส่งข้อมูลแจ้งซ่อม</button>
@@ -92,23 +98,41 @@
 
 <script>
 /* ✅ INIT EmailJS */
-emailjs.init("8UTkDv4pxgKkUI61t"); // 🔴 ใส่ Public Key
+emailjs.init("8UTkDv4pxgKkUI61t"); // Public Key
 
 function sendData(event) {
     event.preventDefault();
 
+    const form = document.getElementById("submitForm");
+    const fileInput = form.querySelector('input[name="attachment"]');
+    const file = fileInput.files[0];
+
+    /* ✅ ตรวจสอบขนาดไฟล์ */
+    if (file) {
+        const maxSize = 200 * 1024; // 200 KB
+
+        if (file.size > maxSize) {
+            alert(
+                "❌ รูปภาพมีขนาดใหญ่เกินไป\n\n" +
+                "กรุณาเลือกไฟล์ไม่เกิน 200KB"
+            );
+            fileInput.value = "";
+            return;
+        }
+    }
+
+    /* ✅ ส่งข้อมูลด้วย EmailJS */
     emailjs.sendForm(
-        "service_03aqzbe",     // 🔴 Service ID
-        "template_balmkii",    // 🔴 Template ID
-        document.getElementById("submitForm")
+        "service_03aqzbe",
+        "template_balmkii",
+        form
     ).then(
         function () {
             alert(
                 "✅ ส่งข้อมูลแจ้งซ่อมเรียบร้อยแล้ว\n\n" +
-                "อีเมล (พร้อมรูปแนบ) ส่งไปที่\n" +
-                "nattapong.k@thaiwah.com"
+                "ระบบได้ส่งอีเมลไปเรียบร้อย"
             );
-            document.getElementById("submitForm").reset();
+            form.reset();
         },
         function (error) {
             alert("❌ เกิดข้อผิดพลาดในการส่งอีเมล");
